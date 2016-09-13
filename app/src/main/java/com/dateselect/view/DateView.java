@@ -1,14 +1,17 @@
 package com.dateselect.view;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.dateselect.R;
 import com.dateselect.utils.DateUtils;
 
 import java.util.ArrayList;
@@ -21,10 +24,14 @@ import java.util.List;
  * desc 日期选择
  */
 public class DateView extends View{
+    private int resouceId = -1;
     //是否可点击 默认可点击
     private boolean isClick = true;
-    private String mulitUnSelectColor = "#FE9900";
-    private String mulitSelectColor = "#0198da";
+    private int mulitUnSelectColor;
+    private int mulitSelectColor;
+    private int selectTextColor;
+    private int unSelectTextColor;
+    private int weekColor;
     private String[] weekDays = {"周日","周一","周二","周三","周四","周五","周六"};
     //列
     private static final int NUM_COLUMNS = 7;
@@ -50,11 +57,13 @@ public class DateView extends View{
 
     public DateView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        initAttrs(context, attrs);
         init();
     }
 
     public DateView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        initAttrs(context,attrs);
         init();
     }
 
@@ -72,6 +81,33 @@ public class DateView extends View{
         setSelectYearMonth(mCurrYear,mCurrMonth,mCurrDay);
     }
 
+    private void initAttrs(Context context, AttributeSet attrs) {
+        TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.date_view);
+        int n = array.getIndexCount();
+        for (int i = 0; i < n; i++){
+            int arr = array.getIndex(i);
+            resouceId = array.getResourceId(arr,0);
+            switch (arr){
+                case R.styleable.date_view_selected_color:
+                    mulitSelectColor =  resouceId > 0? array.getResources().getColor(resouceId) : array.getColor(arr, Color.parseColor("#FE9900"));
+                    break;
+                case R.styleable.date_view_unSelect_color:
+                    mulitUnSelectColor = resouceId > 0? array.getResources().getColor(resouceId) : array.getColor(arr,Color.parseColor("#0198da"));
+                    break;
+                case R.styleable.date_view_selectText_color:
+                    selectTextColor = resouceId > 0? array.getResources().getColor(resouceId) : array.getColor(arr,Color.WHITE);
+                    break;
+                case R.styleable.date_view_unSelectText_color:
+                    unSelectTextColor = resouceId > 0? array.getResources().getColor(resouceId) : array.getColor(arr,Color.WHITE);
+                    break;
+                case R.styleable.date_view_week_color:
+                    weekColor = resouceId > 0? array.getResources().getColor(resouceId) : array.getColor(arr,Color.GRAY);
+                    break;
+            }
+        }
+
+        array.recycle();
+    }
     @Override
     protected void onDraw(Canvas canvas) {
         initSize();
@@ -94,12 +130,6 @@ public class DateView extends View{
             int startX = (int) (mColumnSize * column + (mColumnSize - mPaint.measureText(dayString))/2);
             int startY;
             startY = (int) (mRowSize * row + mRowSize/2 - (mPaint.ascent() + mPaint.descent())/2);
-//            if (row == 0){
-//                startY = (int) (mRowSize * row + mRowSize/2 - (mPaint.ascent() + mPaint.descent())/2)+60;
-//            } else {
-//                startY = (int) (mRowSize * row + mRowSize/2 - (mPaint.ascent() + mPaint.descent())/2);
-//            }
-
             int startRecX = mColumnSize * column;
             int startRecY = mRowSize * row;
             int endRecX = startRecX + mColumnSize;
@@ -109,19 +139,20 @@ public class DateView extends View{
                 //TODO
                 if (selectedDays.contains(dayString)){
                     selectedDaysState.add("1");
-                    mPaint.setColor(Color.parseColor(mulitSelectColor));
+                    mPaint.setColor(mulitSelectColor);
                 }else {
                     selectedDaysState.add("0");
-                    mPaint.setColor(Color.parseColor(mulitUnSelectColor));
+                    mPaint.setColor(mulitUnSelectColor);
                 }
                 canvas.drawCircle(startRecX+(endRecX - startRecX)/2,startRecY+(endRecY - startRecY)/2,(endRecY - startRecY)/3,mPaint);
             }else {//单选
                 int intDay = Integer.parseInt(dayString);
-                if (intDay == mSelDay){
-                    mPaint.setColor(Color.parseColor(mulitSelectColor));
+                //TODO 判断是否是当前月
+                if (intDay == mSelDay && mSelMonth == mCurrMonth && mSelYear == mCurrYear){
+                    mPaint.setColor(mulitSelectColor);
 //                    canvas.drawCircle(startRecX+(endRecX - startRecX)/2,startRecY+(endRecY - startRecY)/2,(endRecY - startRecY)/2,mPaint);
                 }else {
-                    mPaint.setColor(Color.parseColor(mulitUnSelectColor));
+                    mPaint.setColor(mulitUnSelectColor);
                 }
                 canvas.drawCircle(startRecX+(endRecX - startRecX)/2,startRecY+(endRecY - startRecY)/2,(endRecY - startRecY)/3,mPaint);
 //                if (intDay == mSelDay){
@@ -221,8 +252,8 @@ public class DateView extends View{
         if (!selectMode){
             selectedDays.clear();
             selectedDaysState.clear();
-            setSelectYearMonth(mCurrYear,mCurrMonth,mCurrDay);
         }
+        setSelectYearMonth(mCurrYear,mCurrMonth,mCurrDay);
         invalidate();
     }
 
@@ -316,5 +347,9 @@ public class DateView extends View{
      */
     public List<String> getSelectedDaysState(){
         return selectedDaysState;
+    }
+
+    public String getCurrentDay(){
+        return mSelYear+"/"+mSelMonth+"/"+mSelDay;
     }
 }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+   <declare-styleable name="date_view">
+       <attr name="selected_color" format="color|reference"/>
+       <attr name="unSelect_color" format="color|reference"/>
+       <attr name="textSize" format="dimension|reference"/>
+       <attr name="selectText_color" format="color|reference"/>
+       <attr name="unSelectText_color" format="color|reference"/>
+       <attr name="week_color" format="color|reference"/>
+   </declare-styleable>
+</resources>
